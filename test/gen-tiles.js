@@ -1,7 +1,7 @@
 'use strict';
 
 var fs = require('fs');
-var geojsonvt = require('../src/index');
+var GeoJSONVT = require('../src/geojsonvt');
 
 module.exports = genTiles;
 
@@ -11,7 +11,7 @@ if (require.main === module) { // if called directly
 }
 
 function genTiles(data, maxZoom, maxPoints) {
-    var index = geojsonvt(data, {
+    var index = new GeoJSONVT(data, {
         indexMaxZoom: maxZoom || 0,
         indexMaxPoints: maxPoints || 10000
     });

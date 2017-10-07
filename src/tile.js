@@ -4,10 +4,8 @@ module.exports = createTile;
 
 function createTile(features, z2, tx, ty, tolerance, noSimplify) {
     var tile = {
-        features: [],
+        features: {},
         numPoints: 0,
-        numSimplified: 0,
-        numFeatures: 0,
         source: null,
         x: tx,
         y: ty,
@@ -16,18 +14,22 @@ function createTile(features, z2, tx, ty, tolerance, noSimplify) {
         min: [2, 1],
         max: [-1, 0]
     };
-    for (var i = 0; i < features.length; i++) {
-        tile.numFeatures++;
-        addFeature(tile, features[i], tolerance, noSimplify);
 
-        var min = features[i].min,
-            max = features[i].max;
+    Object.keys(features).forEach(function (featureId) {
+        for (var i = 0; i < features[featureId].length; i++) {
+            addFeature(tile, features[featureId][i], tolerance, noSimplify);
 
-        if (min[0] < tile.min[0]) tile.min[0] = min[0];
-        if (min[1] < tile.min[1]) tile.min[1] = min[1];
-        if (max[0] > tile.max[0]) tile.max[0] = max[0];
-        if (max[1] > tile.max[1]) tile.max[1] = max[1];
-    }
+            var min = features[featureId][i].min,
+                max = features[featureId][i].max;
+
+            if (min[0] < tile.min[0]) tile.min[0] = min[0];
+            if (min[1] < tile.min[1]) tile.min[1] = min[1];
+            if (max[0] > tile.max[0]) tile.max[0] = max[0];
+            if (max[1] > tile.max[1]) tile.max[1] = max[1];
+        }
+    });
+
+
     return tile;
 }
 
@@ -43,7 +45,6 @@ function addFeature(tile, feature, tolerance, noSimplify) {
         for (i = 0; i < geom.length; i++) {
             simplified.push(geom[i]);
             tile.numPoints++;
-            tile.numSimplified++;
         }
 
     } else {
@@ -66,7 +67,6 @@ function addFeature(tile, feature, tolerance, noSimplify) {
                 // keep points with importance > tolerance
                 if (noSimplify || p[2] > sqTolerance) {
                     simplifiedRing.push(p);
-                    tile.numSimplified++;
                 }
                 tile.numPoints++;
             }
@@ -86,7 +86,8 @@ function addFeature(tile, feature, tolerance, noSimplify) {
         if (feature.id !== null) {
             tileFeature.id = feature.id;
         }
-        tile.features.push(tileFeature);
+        tile.features[feature.id] = tile.features[feature.id] || [];
+        tile.features[feature.id].push(tileFeature);
     }
 }
 

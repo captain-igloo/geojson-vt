@@ -5,41 +5,66 @@ var createFeature = require('./feature');
 
 module.exports = wrap;
 
+function concatFeatures(features1, features2) {
+    Object.keys(features1).forEach(function (featureId) {
+        if (features2.hasOwnProperty(featureId)) {
+            features1[featureId] = features1[featureId].concat(features2[featureId]);
+        }
+    });
+    Object.keys(features2).forEach(function (featureId) {
+        if (!features1.hasOwnProperty(featureId)) {
+            features1[featureId] = features2[featureId];
+        }
+    });
+    return features1;
+}
+
 function wrap(features, buffer, intersectX) {
-    var merged = features,
-        left  = clip(features, 1, -1 - buffer, buffer,     0, intersectX, -1, 2), // left world copy
-        right = clip(features, 1,  1 - buffer, 2 + buffer, 0, intersectX, -1, 2); // right world copy
+    var merged, left, right;
+
+    merged = features;
+    left  = clip(features, 1, -1 - buffer, buffer,     0, intersectX, -1, 2); // left world copy
+    right = clip(features, 1,  1 - buffer, 2 + buffer, 0, intersectX, -1, 2); // right world copy
 
     if (left || right) {
         merged = clip(features, 1, -buffer, 1 + buffer, 0, intersectX, -1, 2) || []; // center world copy
 
-        if (left) merged = shiftFeatureCoords(left, 1).concat(merged); // merge left into center
-        if (right) merged = merged.concat(shiftFeatureCoords(right, -1)); // merge right into center
+        // merge left into center
+        if (left) {
+            merged = concatFeatures(shiftFeatureCoords(left, 1), merged);
+        }
+
+        // merge right into center
+        if (right) {
+            merged = concatFeatures(merged, shiftFeatureCoords(right, -1));
+        }
     }
 
     return merged;
 }
 
 function shiftFeatureCoords(features, offset) {
-    var newFeatures = [];
+    var newFeatures = {};
 
-    for (var i = 0; i < features.length; i++) {
-        var feature = features[i],
-            type = feature.type;
+    Object.keys(features).forEach(function (featureId) {
+        for (var i = 0; i < features[featureId].length; i++) {
+            var feature = features[featureId][i],
+                type = feature.type;
 
-        var newGeometry;
+            var newGeometry;
 
-        if (type === 1) {
-            newGeometry = shiftCoords(feature.geometry, offset);
-        } else {
-            newGeometry = [];
-            for (var j = 0; j < feature.geometry.length; j++) {
-                newGeometry.push(shiftCoords(feature.geometry[j], offset));
+            if (type === 1) {
+                newGeometry = shiftCoords(feature.geometry, offset);
+            } else {
+                newGeometry = [];
+                for (var j = 0; j < feature.geometry.length; j++) {
+                    newGeometry.push(shiftCoords(feature.geometry[j], offset));
+                }
             }
+            newFeatures[featureId] = newFeatures[featureId] || [];
+            newFeatures[featureId].push(createFeature(feature.tags, type, newGeometry, feature.id));
         }
-
-        newFeatures.push(createFeature(feature.tags, type, newGeometry, feature.id));
-    }
+    });
 
     return newFeatures;
 }

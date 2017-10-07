@@ -13,21 +13,23 @@ function transformTile(tile, extent) {
         ty = tile.y,
         i, j, k;
 
-    for (i = 0; i < tile.features.length; i++) {
-        var feature = tile.features[i],
-            geom = feature.geometry,
-            type = feature.type;
+    Object.keys(tile.features).forEach(function (featureId) {
+        for (i = 0; i < tile.features[featureId].length; i++) {
+            var feature = tile.features[featureId][i],
+                geom = feature.geometry,
+                type = feature.type;
 
-        if (type === 1) {
-            for (j = 0; j < geom.length; j++) geom[j] = transformPoint(geom[j], extent, z2, tx, ty);
+            if (type === 1) {
+                for (j = 0; j < geom.length; j++) geom[j] = transformPoint(geom[j], extent, z2, tx, ty);
 
-        } else {
-            for (j = 0; j < geom.length; j++) {
-                var ring = geom[j];
-                for (k = 0; k < ring.length; k++) ring[k] = transformPoint(ring[k], extent, z2, tx, ty);
+            } else {
+                for (j = 0; j < geom.length; j++) {
+                    var ring = geom[j];
+                    for (k = 0; k < ring.length; k++) ring[k] = transformPoint(ring[k], extent, z2, tx, ty);
+                }
             }
         }
-    }
+    });
 
     tile.transformed = true;
 

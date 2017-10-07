@@ -3,20 +3,26 @@
 var test = require('tape');
 var fs = require('fs');
 var path = require('path');
-var geojsonvt = require('../src/index');
+var GeoJSONVt = require('../src/geojsonvt');
 
-var square = [{
-    geometry: [[[-64, 4160], [-64, -64], [4160, -64], [4160, 4160], [-64, 4160]]],
-    type: 3,
-    tags: {name: 'Pennsylvania', density: 284.3},
-    id: '42'
-}];
+// var index = new GeoJSONVt(getJSON('us-states.json'), {debug: 2});
+// console.log('TOTAL', index.total);
+// console.log(JSON.stringify(index));
+
+var square = {
+    42: [{
+        geometry: [[[-64, 4160], [-64, -64], [4160, -64], [4160, 4160], [-64, 4160]]],
+        type: 3,
+        tags: {name: 'Pennsylvania', density: 284.3},
+        id: '42'
+    }]
+};
 
 test('getTile: us-states.json', function (t) {
     var log = console.log;
 
     console.log = function () {};
-    var index = geojsonvt(getJSON('us-states.json'), {debug: 2});
+    var index = new GeoJSONVt(getJSON('us-states.json'), {debug: 2});
 
     console.log = log;
 
@@ -28,7 +34,7 @@ test('getTile: us-states.json', function (t) {
     t.equal(index.getTile(11, 800, 400), null, 'non-existing tile');
     t.equal(index.getTile(-5, 123.25, 400.25), null, 'invalid tile');
 
-    t.equal(index.total, 37);
+    t.equal(index.total, 45);
 
     t.end();
 });

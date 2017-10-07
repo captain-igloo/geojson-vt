@@ -13,7 +13,7 @@ testTiles('single-geom.json', 'single-geom-tiles.json');
 
 test('throws on invalid GeoJSON', function (t) {
     t.throws(function () {
-        genTiles({type: 'Pologon'});
+        genTiles({type: 'Pologon', 'id': 1});
     });
     t.end();
 });
